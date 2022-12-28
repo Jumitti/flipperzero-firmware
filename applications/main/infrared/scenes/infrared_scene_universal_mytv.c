@@ -2,7 +2,7 @@
 
 #include "common/infrared_scene_universal_common.h"
 
-void infrared_scene_universal_tv_on_enter(void* context) {
+void infrared_scene_universal_mytv_on_enter(void* context) {
     infrared_scene_universal_common_on_enter(context);
 
     Infrared* infrared = context;
@@ -102,10 +102,10 @@ void infrared_scene_universal_tv_on_enter(void* context) {
     }
 }
 
-bool infrared_scene_universal_tv_on_event(void* context, SceneManagerEvent event) {
+bool infrared_scene_universal_mytv_on_event(void* context, SceneManagerEvent event) {
     return infrared_scene_universal_common_on_event(context, event);
 }
 
-void infrared_scene_universal_tv_on_exit(void* context) {
+void infrared_scene_universal_mytv_on_exit(void* context) {
     infrared_scene_universal_common_on_exit(context);
 }

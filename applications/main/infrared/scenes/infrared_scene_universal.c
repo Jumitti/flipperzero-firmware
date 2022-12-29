@@ -51,7 +51,10 @@ bool infrared_scene_universal_on_event(void* context, SceneManagerEvent event) {
     bool consumed = false;
 
     if(event.type == SceneManagerEventTypeCustom) {
-        if(event.event == SubmenuIndexUniversalTV) {
+        if(event.event == SubmenuIndexUniversalMyTV) {
+            scene_manager_next_scene(scene_manager, InfraredSceneUniversalMyTV);
+            consumed = true;
+        } else if(event.event == SubmenuIndexUniversalTV) {
             scene_manager_next_scene(scene_manager, InfraredSceneUniversalTV);
             consumed = true;
         } else if(event.event == SubmenuIndexUniversalAC) {

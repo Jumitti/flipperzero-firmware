@@ -57,7 +57,7 @@ void infrared_scene_universal_mytv_on_enter(void* context) {
         36,
         66,
         &I_HeatHi_25x27,
-        &I_HeatHi_hvr_25x27
+        &I_HeatHi_hvr_25x27,
         infrared_scene_universal_common_item_callback,
         context);
     infrared_brute_force_add_record(brute_force, i++, "Lum_up");

@@ -231,10 +231,12 @@ All new/changes will be with the name "My TV". You can easily change this name f
     ![Screenshot-20221229-034304](https://user-images.githubusercontent.com/112354223/209896418-0c469919-77af-4487-b91c-8a27c30f67c7.png)
     
 ### Create a IR library
-The easiest step... but the longest! My .ir library is mytv.ir
-- Create a "Saved Remotes" with the IRs you want
-- Edit the .ir by replacing "signals" by "library" (line 1)
+The easiest step... but the longest! My .ir library is mytv.ir (defined above ; see "Directory of the library")
+- Create a "Saved Remotes" with the IRs you want with Flipper Zero
+- Edit the .ir by replacing "signals" by "library" (line 1) (WARNING ! When editing the .ir, remember to put the right names assigned to the corresponding buttons ; see above "Button and name")
 - Put the .ir file in assets
+
+This file is very similar to the files you can create with "Saved Remotes". It lets the remote know what to do and how.
 
 ### Bonus: Do a macro
 here is the code of my .ir file
@@ -350,7 +352,11 @@ protocol: NEC
 address: 04 00 00 00
 command: 03 00 00 00
 ```
-As you can see, there are several "lum_dn" and "lum_up". They are stored in the exact order of execution to go to the settings of my TV, press the arrows, select the right brightness and exit the settings.
+As you can see, there are several "lum_dn" and "lum_up". They are stored in the exact order of execution to
+-> go to the settings of my TV
+-> press the arrows
+-> select the right brightness
+-> exit the settings.
 This allows to make a macro for the IRs
 
 ## Demo

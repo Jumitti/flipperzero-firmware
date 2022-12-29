@@ -88,7 +88,7 @@ void infrared_scene_universal_mytv_on_enter(void* context) {
 
     button_panel_add_label(button_panel, 6, 11, FontPrimary, "TV remote");
     button_panel_add_label(button_panel, 9, 64, FontSecondary, "Vol");
-    button_panel_add_label(button_panel, 43, 64, FontSecondary, "Lum");
+    button_panel_add_label(button_panel, 39, 64, FontSecondary, "Lum");
 
     view_set_orientation(view_stack_get_view(infrared->view_stack), ViewOrientationVertical);
     view_dispatcher_switch_to_view(infrared->view_dispatcher, InfraredViewStack);

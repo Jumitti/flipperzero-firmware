@@ -1,3 +1,5 @@
+# FORK By [Jumitti](https://github.com/Jumitti)
+Thanks to [JMR & LupusE](https://forum.flipperzero.one/t/script-or-other-to-send-multiple-ir-successively/10581)
 <picture>
     <source media="(prefers-color-scheme: dark)" srcset="/.github/assets/dark_theme_banner.png">
     <source media="(prefers-color-scheme: light)" srcset="/.github/assets/light_theme_banner.png">
@@ -5,8 +7,364 @@
         alt="A pixel art of a Dophin with text: Flipper Zero Official Repo"
         src="/.github/assets/light_theme_banner.png">
 </picture>
+## Disclaimers
+First of all, this fork will become obsolete very quickly. It modifies essential files for the proper functioning of the next updates.
+It does not cause any problem with my Flipper Zero but if one day the modified files are modified in real versions of the firmware it will be necessary to redo everything. To understand exactly what this fork does and how to see below
+
+## My problem
+The "Saved Remotes" function is very useful but a bit "archaic". The interface is not unpleasant but when we see that of "Universal Remotes" we would like to have the same thing for our own remote controls. It's much more intuitive and faster.
+
+Then, the force_mod (which makes it possible to emulate several IRs in a row) is not possible with the "Saved Remotes"
+
+The "Universal Remotes" remote controls take time to send the information if you have to send several signals before having the right one.
+
+Finally, I want to send a series of IR (force_mod) and the only way to do that is with "Universal Remotes"
+
+## Goal
+
+- Create a remote control in "Universal Remotes"
+
+- Create a library associated with this remote control
+
+## Installation
+
+You need to use Flpper Build Tool (see Documentation below). You will then install a developer firmware on your Flipper Zero
+
+## How to do
+For a better understanding, I invite you to compare the files that I modified or added with the originals.
+I will do my best to explain as simply as possible.
+
+All new/changes will be with the name "My TV". You can easily change this name for your own project
+
+### Create a remote control in "Universal Remotes"
+1. Edit in `infrared_scene_config.h` (/applications/main/infrared/scenes/infrared_scene_config.h)
+
+    - Line added (order is not important):
+    ```shell
+    ADD_SCENE(infrared, universal_mytv, UniversalMyTV)
+    ```
+    
+    This line is necessary for the IR application to recognize our Universal Remote
+    
+2. Edit in `infrared_scene_universal.c` (/applications/main/infrared/scenes/infrared_scene_universal.c)
+    
+    WARNING, the order of the lines is important
+    - Line added in ``typedef enum`` block:
+    ```shell
+    SubmenuIndexUniversalMyTV
+    ```
+    - Block added in ``void infrared_scene_universal_on_enter(void* context)`` block:
+    ```shell
+    submenu_add_item(
+        submenu,
+        "My TV",
+        SubmenuIndexUniversalMyTV,
+        infrared_scene_universal_submenu_callback,
+        context);
+     ```
+     "My TV" is the name that will be displayed
+     
+     ![universal remotes](https://user-images.githubusercontent.com/112354223/209895756-044a255e-4e8b-4d2d-a216-1518dcec8566.png)
+    - Block added and edit in ``bool infrared_scene_universal_on_event(void* context, SceneManagerEvent event)`` block (section "if"):
+    ```shell
+    if(event.type == SceneManagerEventTypeCustom) {
+        if(event.event == SubmenuIndexUniversalMyTV) {
+            scene_manager_next_scene(scene_manager, InfraredSceneUniversalMyTV);
+            consumed = true;
+        } else if(event.event == SubmenuIndexUniversalTV) {
+            scene_manager_next_scene(scene_manager, InfraredSceneUniversalTV);
+            consumed = true;
+        } else if(event.event == SubmenuIndexUniversalAC) {
+            scene_manager_next_scene(scene_manager, InfraredSceneUniversalAC);
+            consumed = true;
+        } else if(event.event == SubmenuIndexUniversalAudio) {
+            scene_manager_next_scene(scene_manager, InfraredSceneUniversalAudio);
+            consumed = true;
+    ```
+    This edit is needed for the IR app to know how to handle our Universal Remote
+    
+    This allows to have the force_mod, the interface and the name
+    
+3. Create ``infrared_scene_universal_mytv.c`` file in ``/applications/main/infrared/scenes/``:
+    ```shell
+    #include "../infrared_i.h"
+
+    #include "common/infrared_scene_universal_common.h"
+
+    void infrared_scene_universal_mytv_on_enter(void* context) {
+        infrared_scene_universal_common_on_enter(context);
+
+        Infrared* infrared = context;
+        ButtonPanel* button_panel = infrared->button_panel;
+        InfraredBruteForce* brute_force = infrared->brute_force;
+
+        infrared_brute_force_set_db_filename(brute_force, EXT_PATH("infrared/assets/mytv.ir"));
+
+        button_panel_reserve(button_panel, 2, 3);
+        uint32_t i = 0;
+        button_panel_add_item(
+            button_panel,
+            i,
+            0,
+            0,
+            3,
+            19,
+            &I_Power_25x27,
+            &I_Power_hvr_25x27,
+            infrared_scene_universal_common_item_callback,
+            context);
+        infrared_brute_force_add_record(brute_force, i++, "Power");
+        button_panel_add_item(
+            button_panel,
+            i,
+            1,
+            0,
+            36,
+            19,
+            &I_Mute_25x27,
+            &I_Mute_hvr_25x27,
+            infrared_scene_universal_common_item_callback,
+            context);
+        infrared_brute_force_add_record(brute_force, i++, "Mute");
+        button_panel_add_item(
+            button_panel,
+            i,
+            0,
+            1,
+            3,
+            66,
+            &I_Vol_up_25x27,
+            &I_Vol_up_hvr_25x27,
+            infrared_scene_universal_common_item_callback,
+            context);
+        infrared_brute_force_add_record(brute_force, i++, "Vol_up");
+        button_panel_add_item(
+            button_panel,
+            i,
+            1,
+            1,
+            36,
+            66,
+            &I_HeatHi_25x27,
+            &I_HeatHi_hvr_25x27,
+            infrared_scene_universal_common_item_callback,
+            context);
+        infrared_brute_force_add_record(brute_force, i++, "Lum_up");
+        button_panel_add_item(
+            button_panel,
+            i,
+            0,
+            2,
+            3,
+            98,
+            &I_Vol_down_25x27,
+            &I_Vol_down_hvr_25x27,
+            infrared_scene_universal_common_item_callback,
+            context);
+        infrared_brute_force_add_record(brute_force, i++, "Vol_dn");
+        button_panel_add_item(
+            button_panel,
+            i,
+            1,
+            2,
+            36,
+            98,
+            &I_HeatLo_25x27,
+            &I_HeatLo_hvr_25x27,
+            infrared_scene_universal_common_item_callback,
+            context);
+        infrared_brute_force_add_record(brute_force, i++, "Lum_dn");
+
+        button_panel_add_label(button_panel, 6, 11, FontPrimary, "TV remote");
+        button_panel_add_label(button_panel, 9, 64, FontSecondary, "Vol");
+        button_panel_add_label(button_panel, 39, 64, FontSecondary, "Lum");
+
+        view_set_orientation(view_stack_get_view(infrared->view_stack), ViewOrientationVertical);
+        view_dispatcher_switch_to_view(infrared->view_dispatcher, InfraredViewStack);
+
+        infrared_show_loading_popup(infrared, true);
+        bool success = infrared_brute_force_calculate_messages(brute_force);
+        infrared_show_loading_popup(infrared, false);
+
+        if(!success) {
+            scene_manager_next_scene(infrared->scene_manager, InfraredSceneErrorDatabases);
+        }
+    }
+
+    bool infrared_scene_universal_mytv_on_event(void* context, SceneManagerEvent event) {
+        return infrared_scene_universal_common_on_event(context, event);
+    }
+
+    void infrared_scene_universal_mytv_on_exit(void* context) {
+        infrared_scene_universal_common_on_exit(context);
+    }
+    ```
+    
+    This file allows to create our Universal Remote as well as to manage the interface and to modify it. 
+    
+    WARNING! the x,y coordinates are in the direction of the remote control
+    
+    - Directory of the library:
+        Mine is mytv.ir (line: ``infrared_brute_force_set_db_filename(brute_force, EXT_PATH("infrared/assets/mytv.ir"))``)
+    - Float tittles:
+        ```shell
+        button_panel_add_label(button_panel, 6, 11, FontPrimary, "TV remote");
+        button_panel_add_label(button_panel, 9, 64, FontSecondary, "Vol");
+        button_panel_add_label(button_panel, 39, 64, FontSecondary, "Lum");
+        ```
+     - Button and name:
+        if you want the list of icons or make your own it's in this folder: assets/icons (infrared for specifiques icons)
+        ```shell
+        button_panel_add_item(
+            button_panel,
+            i,
+            0,
+            2,
+            3,
+            98,
+            &I_Vol_down_25x27,
+            &I_Vol_down_hvr_25x27,
+            infrared_scene_universal_common_item_callback,
+            context);
+        infrared_brute_force_add_record(brute_force, i++, "Vol_dn");
+        ```    
+    ![Screenshot-20221229-034304](https://user-images.githubusercontent.com/112354223/209896418-0c469919-77af-4487-b91c-8a27c30f67c7.png)
+    
+### Create a IR library
+The easiest step... but the longest! My .ir library is mytv.ir
+- Create a "Saved Remotes" with the IRs you want
+- Edit the .ir by replacing "signals" by "library" (line 1)
+- Put the .ir file in assets
+
+### Bonus: Do a macro
+here is the code of my .ir file
+```shell
+Filetype: IR library file
+Version: 1
+# 
+name: Power
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 08 00 00 00
+# 
+name: Lum_dn
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 43 00 00 00
+# 
+name: Lum_dn
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 44 00 00 00
+# 
+name: Lum_dn
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 44 00 00 00
+# 
+name: Lum_dn
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 40 00 00 00
+# 
+name: Lum_dn
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 40 00 00 00
+# 
+name: Lum_dn
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 44 00 00 00
+# 
+name: Lum_dn
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 43 00 00 00
+# 
+name: Lum_up
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 43 00 00 00
+# 
+name: Lum_up
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 44 00 00 00
+# 
+name: Lum_up
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 44 00 00 00
+# 
+name: Lum_up
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 41 00 00 00
+# 
+name: Lum_up
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 41 00 00 00
+# 
+name: Lum_up
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 44 00 00 00
+# 
+name: Lum_up
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 43 00 00 00
+# 
+name: Mute
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 09 00 00 00
+# 
+name: Vol_up
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 02 00 00 00
+# 
+name: Vol_dn
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 03 00 00 00
+```
+As you can see, there are several "lum_dn" and "lum_up". They are stored in the exact order of execution to go to the settings of my TV, press the arrows, select the right brightness and exit the settings.
+This allows to make a macro for the IRs
+
+## Demo
+
+[Youtube](https://youtube.com/shorts/8ni3j1XZkUo)
 
 # Flipper Zero Firmware
+<picture>
+    <source media="(prefers-color-scheme: dark)" srcset="/.github/assets/dark_theme_banner.png">
+    <source media="(prefers-color-scheme: light)" srcset="/.github/assets/light_theme_banner.png">
+    <img
+        alt="A pixel art of a Dophin with text: Flipper Zero Official Repo"
+        src="/.github/assets/light_theme_banner.png">
+</picture>
 
 - [Flipper Zero Official Website](https://flipperzero.one). A simple way to explain to your friends what the Flipper Zero can do
 - [Flipper Zero Firmware Update](https://update.flipperzero.one). Improvements for your dolphin: latest firmware releases, upgrade tools for PC and Mobile devices

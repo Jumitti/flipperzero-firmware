@@ -56,8 +56,8 @@ void infrared_scene_universal_mytv_on_enter(void* context) {
         1,
         36,
         66,
-        &I_Up_25x27,
-        &I_Up_hvr_25x27,
+        &I_HeatHi_25x27,
+        &I_HeatHi_hvr_25x27
         infrared_scene_universal_common_item_callback,
         context);
     infrared_brute_force_add_record(brute_force, i++, "Lum_up");
@@ -80,8 +80,8 @@ void infrared_scene_universal_mytv_on_enter(void* context) {
         2,
         36,
         98,
-        &I_Down_25x27,
-        &I_Down_hvr_25x27,
+        &I_HeatLo_25x27,
+        &I_HeatLo_hvr_25x27,
         infrared_scene_universal_common_item_callback,
         context);
     infrared_brute_force_add_record(brute_force, i++, "Lum_dn");
